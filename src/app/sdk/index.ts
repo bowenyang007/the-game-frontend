@@ -1,28 +1,20 @@
 import { TxnBuilderTypes, Types } from "aptos";
-import useSubmitTransaction, {
-} from "./useSubmitTransaction";
+import useSubmitTransaction from "./useSubmitTransaction";
 
 const useSubmitGameTransaction = () => {
-  const { submitTransaction } =
-    useSubmitTransaction();
+  const { submitTransaction } = useSubmitTransaction();
 
-  async function joinGame(
-    tokenName: string,
-    tokenDescription: string,
-    tokenURI: string,
-  ) {
-    let randTokenName = (Math.random() + 1).toString(36).substring(7);
+  async function joinGame() {
     const payload: Types.TransactionPayload = {
       type: "entry_function_payload",
       function: `${process.env.NEXT_PUBLIC_CONTRACT_ADDRESS}::game_manager::join_game`,
       type_arguments: [],
-      arguments: [randTokenName, tokenDescription, tokenURI],
+      arguments: [],
     };
     await submitTransaction(payload);
   }
   return { joinGame };
 };
-
 
 export function constructEntryFuncPayload(
   moduleName: string,

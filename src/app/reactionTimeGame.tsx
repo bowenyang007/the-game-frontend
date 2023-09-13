@@ -1,12 +1,14 @@
 "use client";
 
 import { useContext, useEffect, useState } from "react";
-import { StateContext } from "../providers";
-import { Box, Button, Flex, Heading, Text } from "@chakra-ui/react";
+import { Box, Flex, Heading, Text } from "@chakra-ui/react";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
+import { fetchAPI } from "./util";
 
-export default function ReactionTimeGame() {
-  const context = useContext(StateContext);
+type props = {
+  handleReplay: (arg: boolean) => void;
+};
+export default function ReactionTimeGame({ handleReplay }: props) {
   const { account } = useWallet();
 
   const [isRedBoxVisible, setIsRedBoxVisible] = useState(true);
@@ -17,18 +19,7 @@ export default function ReactionTimeGame() {
 
   const handleClick = () => {
     if (isRedBoxVisible) {
-      // Player clicked on the red box, mark them as lost
-      const currentPlayerState = context.playerState[account?.address!];
-      if (currentPlayerState) {
-        const updatedPlayerState = {
-          ...currentPlayerState,
-          lost: true,
-        };
-        context.updatePlayerState({
-          ...context.playerState,
-          [account?.address!]: updatedPlayerState,
-        });
-      }
+      setReactionTime(-1);
       setHasFailed(true);
     } else if (isGreenBoxVisible) {
       // Player clicked on the green box, update their score
@@ -36,18 +27,7 @@ export default function ReactionTimeGame() {
       if (startTime !== null) {
         const timeDifference = endTime - startTime;
 
-        // Update the player's score based on the time difference
-        const currentPlayerState = context.playerState[account?.address!];
-        if (currentPlayerState) {
-          const updatedPlayerState = {
-            ...currentPlayerState,
-            currentScore: timeDifference,
-          };
-          context.updatePlayerState({
-            ...context.playerState,
-            [account?.address!]: updatedPlayerState,
-          });
-        }
+        handleReplay(false);
 
         setReactionTime(timeDifference);
       }
@@ -68,6 +48,17 @@ export default function ReactionTimeGame() {
       clearTimeout(timeout);
     };
   }, []);
+
+  useEffect(() => {
+    if (reactionTime) {
+      const payload = JSON.stringify({
+        address: account?.address!,
+        score: reactionTime,
+      });
+
+      fetchAPI("send_score", payload);
+    }
+  }, [account?.address, reactionTime]);
 
   return (
     <Box textAlign="center" w="100%" h="50%">

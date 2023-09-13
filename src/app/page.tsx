@@ -1,40 +1,64 @@
 "use client";
 
-import { useContext, useEffect, useState } from "react";
-import { GameStatus, StateContext } from "./providers";
-import { Box, Button, Spinner } from "@chakra-ui/react";
-import ReactionTimeGame from "./game/page";
+import { useEffect, useState } from "react";
+import {
+  Button,
+  Flex,
+  HStack,
+  Heading,
+  Spinner,
+  VStack,
+} from "@chakra-ui/react";
+import ReactionTimeGame from "./reactionTimeGame";
 import useSubmitGameTransaction from "./sdk";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
-import WalletsModal from "./wallet/WalletModel";
-import FunPage from "./fun/page";
 import { fetchAPI } from "./util";
+import React from "react";
+import { useRouter } from "next/navigation";
+
+interface GameState {
+  pool: number;
+  latestPlayerState: LatestPlayerState;
+  maxPlayer: number;
+  numBtwSecs: number;
+  buyIn: number;
+  joinable: boolean;
+  playable: boolean;
+  round: number;
+}
+
+interface PlayerStateView {
+  isAlive: boolean;
+  wins: number;
+  nftUri: string;
+  potentialWinning: number;
+  tokenIndex: number;
+}
+
+interface LatestPlayerState {
+  [address: string]: PlayerStateView;
+}
 
 export default function LandingPage() {
-  const context = useContext(StateContext);
   const { joinGame } = useSubmitGameTransaction();
   const [isInitGameLoading, setIsInitGameLoading] = useState(false);
   const { account } = useWallet();
   const [isJoining, setIsJoining] = useState(false);
   const [showJoining, setShowJoining] = useState(false);
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
-  const [count, setCount] = useState(15);
   const [startReactionTimeGame, setStartReactionTimeGame] = useState(false);
-
-  // when page loads, if context.gameState.gameStatus === GameStatus.UNKNOWN, init the game
-  // if JOINING, show allow for joining button to all the player
-  // if STARTED, check wallet address, and get player state, see if player
-  // 1. are playing the game 2. played the game and won 3. play the game and lost
-  // for 1, do nothing, for 2 & 3, update game state and player state map
-  // when each round ends, check for whether we can end the game or not, if so, end the game, change game status,
-  // if not, start the next round
-  useEffect(() => {});
-
+  const [replay, setReplay] = useState(false);
+  const [gameState, setGameState] = useState<GameState>();
+  const router = useRouter();
+  
+  const handleReplay = (to: boolean) => {
+    setReplay(to);
+  };
   // once init game's called, change gamestatus to be JOINING
   const handleInitializeGame = async () => {
     try {
       setIsInitGameLoading(true);
-      fetchAPI("start_game");
+      fetchAPI("init_game");
     } catch (error) {
       console.error("Error initializing the game:", error);
     } finally {
@@ -45,9 +69,8 @@ export default function LandingPage() {
 
   useEffect(() => {
     if (showJoining) {
-
     }
-  }, [showJoining])
+  }, [showJoining]);
 
   // call joinGame where if users not wallet connected, open up wallet modal instead
   const handleJoinGame = async () => {
@@ -55,7 +78,7 @@ export default function LandingPage() {
       setIsJoining(true);
 
       try {
-        await joinGame("token_name", "token_description", "token_uri");
+        await joinGame();
       } catch (error) {
         console.error("Error joining the game:", error);
       } finally {
@@ -67,67 +90,101 @@ export default function LandingPage() {
   };
 
   useEffect(() => {
-    if (showJoining) {
-      const interval = setInterval(() => {
-        if (count > 0) {
-          setCount(count - 1);
-        } else {
-          setStartReactionTimeGame(true);
+    const fetchData = async () => {
+      try {
+        const fetchedGameState = await fetchAPI("view_state");
+        setGameState(fetchedGameState);
+        console.log("game state", fetchedGameState);
+
+        const roundFromServer = fetchedGameState?.round;
+        const local = localStorage.getItem(account?.address!);
+        console.log("local " + local);
+        console.log("server " + roundFromServer);
+
+        if (roundFromServer && roundFromServer !== 0) {
+          if (local && roundFromServer !== Number(local)) {
+            handleReplay(true);
+            localStorage.setItem(account?.address!, roundFromServer.toString());
+          } else {
+            handleReplay(false);
+          }
         }
-      }, 15);
-  
-      return () => clearInterval(interval);
-    }
-  }, [count, showJoining]);
+      } catch (error) {
+        console.error("Error fetching game state:", error);
+      }
+    };
+
+    const interval = setInterval(fetchData, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const closeWalletModal = () => {
     setIsWalletModalOpen(false);
   };
 
-  const renderComponent = () => {
-    switch (context.gameState.gameStatus) {
-      case GameStatus.STARTED:
-        const playerState = context.playerState[account?.address!];
-        // game started but player didn't join
-        if (!playerState || playerState.lost) {
-          return <FunPage />;
-        }
-        if (playerState.finishedCurrentRound) {
-          <Spinner>Waiting for other players to finish...</Spinner>;
-        } else {
-          return <ReactionTimeGame />;
-        }
-      case GameStatus.ENDED:
-        return <FunPage />;
-      default:
-        return null; // Return null or any other component for the default case
+  const handleStartGame = async () => {
+    try {
+      await fetchAPI("start_game");
+    } catch (e) {
+      console.log("Fail to start the game...");
+    } finally {
+      setStartReactionTimeGame(true);
     }
   };
-
+  console.log(startReactionTimeGame);
+  
+  function render() {
+    if (!gameState?.joinable && !gameState?.playable) {
+      localStorage.setItem(account?.address!, '0');
+        return <Button
+        onClick={handleInitializeGame}
+        isLoading={isInitGameLoading}
+        loadingText="Initializing..."
+      >
+        Please Initialize The Game
+      </Button>;
+    }
+    if (gameState.joinable) {
+      return <Flex alignItems={"center"}>
+          {gameState?.latestPlayerState &&
+          account?.address! in gameState?.latestPlayerState ? (
+            <HStack spacing={2}>
+              <Spinner size="lg" color="blue.500" />
+              <Heading>Waiting for The Game to start...</Heading>
+            </HStack>
+          ) : (
+            <Button
+              onClick={handleJoinGame}
+              isLoading={isJoining}
+              loadingText="Joining..."
+              size={"lg"}
+            >
+              Please Join The Game
+            </Button>
+          )}
+          <Button onClick={handleStartGame} position="fixed" bottom="0">
+            Start Game
+          </Button>
+        </Flex>
+      }
+    }
+    if (gameState?.playable) {
+      // TODO: add logic to start the game
+      return startReactionTimeGame || replay ? (
+        gameState?.latestPlayerState[account?.address!] ? (
+          <ReactionTimeGame handleReplay={handleReplay} />
+        ) : (
+          (() => {
+            router.push('/fun'); 
+            return null; 
+          })()
+        )
+      ) : null;
+  }
   return (
-    <Box width="100%" height="100vh">
-      {showJoining ? (
-        <Button
-          onClick={handleJoinGame}
-          isLoading={isJoining}
-          loadingText="Joining..."
-        >
-          Please Join THE Game
-        </Button>
-      ) : (
-        <Button
-          onClick={handleInitializeGame}
-          isLoading={isInitGameLoading}
-          loadingText="Initializing..."
-        >
-          Please Initialize THE Game
-        </Button>
-      )}
-      <WalletsModal
-        handleClose={closeWalletModal}
-        modalOpen={isWalletModalOpen}
-      />
-      {/* <ReactionTimeGame address={account?.address!} /> */}
-    </Box>
+    <VStack width="100%" height="100vh" pt="20%">
+     {render()}
+    </VStack>
   );
 }
