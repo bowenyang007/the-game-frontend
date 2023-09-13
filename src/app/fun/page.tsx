@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { GameState } from "../providers";
 // import DeadPerson from "./components/DeadPerson";
 import { CloseIcon } from "@chakra-ui/icons";
-import { dummyPlayerStates } from "./const";
 
 export default function FunPage() {
   const previousScoreSaver: any[] = [];
@@ -14,6 +13,7 @@ export default function FunPage() {
 
   //const [playerStates, setPlayerStates] = useState<PlayerStatesMap>({});
   const [gameState, setGameState] = useState<GameState>();
+  const [count, setCount] = useState(10);
 
   const getState = async () => {
     // call server to know game state
@@ -23,52 +23,29 @@ export default function FunPage() {
   };
 
   useEffect(() => {
+    const interval = setInterval(() => {
+      if (count > 0) {
+        setCount(count - 1);
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [count]);
+
+  useEffect(() => {
+    // Cleanup the interval when the component unmounts
+
     const intervalId = setInterval(async () => {
       const newState: GameState = await getState();
-      console.log("newState", newState);
-      //const updatedPlayerStates = { ...playerStates };
-
-      // Object.keys(newState).forEach((playerId) => {
-      //   console.log("playerId", playerId);
-      //   console.log("updatedPlayerStates", updatedPlayerStates);
-      //   if (updatedPlayerStates[playerId]) {
-      //     // Check if the player exists in the local state
-      //     const newScore = newState[playerId].potential_winning;
-      //     const localScore = updatedPlayerStates[playerId].potential_winning;
-
-      //     if (newScore !== localScore) {
-      //       // Update the local state if the scores are different
-      //       previousScoreSaver.push(localScore);
-      //       updatedPlayerStates[playerId].potential_winning = newScore;
-      //     }
-      //   }
-      // });
-
       setGameState(newState);
-
-      // setPlayerStates((prevState) => {
-      //   const newState = { ...prevState };
-
-      //   for (const playerId in newState) {
-      //     console.log(playerId);
-      //     if (!newState[playerId].lost && playerId % 3 === 0) {
-      //       newState[playerId].lost = true;
-      //       break;
-      //     }
-      //   }
-
-      //   return newState;
-      // });
     }, 500);
 
     return () => clearInterval(intervalId);
   }, []);
-  console.log("gameState", gameState);
-  console.log("gameState.latestPlayerState", gameState?.latestPlayerState);
+
   const playerSquares = gameState?.latestPlayerState
     ? Object.entries(gameState?.latestPlayerState).map(([playerId, state]) => (
         <Box
-          key={playerId}
+          key={state.token_index}
           w={`200px`}
           h={`200px`}
           bg={state.is_alive ? "green.300" : "gray.400"}
@@ -77,7 +54,7 @@ export default function FunPage() {
           alignItems="center"
           m="8px"
         >
-          <Box>
+          <Box key={state.token_index}>
             {state.is_alive ? (
               <>
                 <Text mt="2" align="center" fontSize="15px">
@@ -85,11 +62,11 @@ export default function FunPage() {
                 </Text>
                 <Image src={state.nft_uri} className={"image-element-alive"} />
                 <Text mt="6" mb="2" align="center" fontSize="20px">
-                  {state.potential_winning}
+                  {state.potential_winning / 1e8}
                 </Text>
               </>
             ) : (
-              <Box>
+              <Box key={state.token_index}>
                 <Box className={"image-wrapper"}>
                   <Text mt="2" align="center" fontSize="15px">
                     {state.token_index}
@@ -104,11 +81,7 @@ export default function FunPage() {
                   color="red"
                   fontWeight="bold"
                 >
-                  {/* {Count(
-                  previousScoreSaver[parseInt(playerId)],
-                  state.potential_winning
-                )} */}
-                  {state.potential_winning}
+                  {state.potential_winning / 1e8}
                 </Text>
               </Box>
             )}
@@ -117,46 +90,84 @@ export default function FunPage() {
       ))
     : null;
 
+  const winnerSquares = gameState?.latestPlayerState
+    ? Object.entries(gameState?.latestPlayerState).map(([playerId, state]) => (
+        <Box key={playerId}>
+          {state.is_alive && (
+            <Box
+              w={`200px`}
+              h={`200px`}
+              bg={state.is_alive ? "green.300" : "gray.400"}
+              borderRadius="md"
+              justifyContent="center"
+              alignItems="center"
+              m="8px"
+            >
+              <Box>
+                <>
+                  <Text mt="2" align="center" fontSize="15px">
+                    {state.token_index}
+                  </Text>
+                  <Image
+                    src={state.nft_uri}
+                    className={"image-element-alive"}
+                  />
+                  <Text mt="6" mb="2" align="center" fontSize="20px">
+                    {state.potential_winning / 1e8}
+                  </Text>
+                </>
+              </Box>
+            </Box>
+          )}
+        </Box>
+      ))
+    : null;
+
   return (
-    <Box>
-      <Heading>DASHBOARD</Heading>
-      {gameState && gameState?.latestPlayerState && (
-        <Flex flexWrap="wrap">{playerSquares}</Flex>
+    <>
+      {/* game is going */}
+      {gameState && gameState.playable && gameState?.latestPlayerState && (
+        <Box>
+          <Text>{count}</Text>
+          <Heading>DASHBOARD</Heading>
+          <Text fontSize="5xl">💰 {gameState?.pool / 1e8}</Text>
+          <Flex flexWrap="wrap">{playerSquares}</Flex>
+        </Box>
       )}
-    </Box>
+      {/* end state */}
+      {gameState &&
+        !gameState.joinable &&
+        !gameState.playable &&
+        gameState.latestPlayerState && (
+          <>
+            <div className="firework"></div>
+            <div className="firework"></div>
+            <div className="firework"></div>
+            <div className="firework"></div>
+            <div className="firework"></div>
+            <div className="firework"></div>
+            <div className="firework"></div>
+            <div className="firework"></div>
+            <div className="firework"></div>
+            <div className="firework"></div>
+            <div className="firework"></div>
+            <div className="firework"></div>
+            <div className="firework"></div>
+            <div className="firework"></div>
+            <div className="firework"></div>
+
+            <Box className="winners">
+              <Heading>WINNERS</Heading>
+              <Text fontSize="5xl">💰 {gameState?.pool / 1e8}</Text>
+              <Flex flexWrap="wrap">{winnerSquares}</Flex>
+            </Box>
+          </>
+        )}
+    </>
   );
 }
 
-function Count(startNumber: any, endNumber: any) {
-  // if (endNumber === 0) {
-  //   return Countdown(startNumber);
-  // }
-  const [count, setCount] = useState(startNumber);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (endNumber === 0) {
-        if (count > 0) {
-          setCount(count - 1);
-        }
-      } else {
-        if (count <= endNumber) {
-          setCount(count + 1);
-        }
-      }
-    }, 15);
-
-    // Cleanup the interval when the component unmounts
-    return () => clearInterval(interval);
-  }, [count]);
-
-  return (
-    <div>
-      <h1>{count} APT</h1>
-    </div>
-  );
-}
-
+// currentRoundTime + numBtwSecs = round
 function Countdown(startNumber: any) {
   const [count, setCount] = useState(startNumber);
 
@@ -173,7 +184,7 @@ function Countdown(startNumber: any) {
 
   return (
     <div>
-      <h1>{count} APT</h1>
+      <h1>{count}</h1>
     </div>
   );
 }

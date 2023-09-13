@@ -15,15 +15,19 @@ export interface GameState {
   latestPlayerState: LatestPlayerState;
   maxPlayer: number;
   numBtwSecs: number;
-  currentRound: number;
+  round: number;
+  playable: boolean;
+  joinable: boolean;
+  buyIn: string;
+  numMaxWinner: string;
 }
 
 export interface PlayerStateView {
-  isAlive: boolean;
+  is_alive: boolean;
   wins: number;
-  nftUri: string;
-  potentialWinning: number;
-  tokenIndex: number;
+  nft_uri: string;
+  potential_winning: number;
+  token_index: number;
 }
 
 export interface LatestPlayerState {

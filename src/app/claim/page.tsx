@@ -1,8 +1,15 @@
 "use client";
 
-import { Box, Flex, Heading, Text, Image, Button } from "@chakra-ui/react";
+import {
+  Box,
+  Flex,
+  Heading,
+  Text,
+  Image,
+  Button,
+  VStack,
+} from "@chakra-ui/react";
 import { useEffect, useState } from "react";
-import { GameState, PlayerState, PlayerStatesMap } from "../providers";
 // import DeadPerson from "./components/DeadPerson";
 import { CloseIcon } from "@chakra-ui/icons";
 import { IndexerClient } from "aptos";
@@ -15,22 +22,25 @@ export default function ClaimPage() {
   const { account, signAndSubmitTransaction } = useWallet();
 
   const getCollectionTokens = async () => {
+    if (!account) return;
     const provider = new IndexerClient(
       "https://indexer-devnet.staging.gcp.aptosdev.com/v1/graphql"
     );
     const collectionTokens = await provider.getTokenOwnedFromCollectionAddress(
-      "0x1f91f384454135a281e4a58d1f7d67432c79101dd0d561e44a3072d975f0e709",
-      collectionAddress!
+      account?.address,
+      collectionAddress!,
+      { tokenStandard: "v2" }
     );
 
     return collectionTokens;
   };
 
   useEffect(() => {
+    if (!account) return;
     getCollectionTokens().then((data: any) => {
       setCollectionTokens(data.current_token_ownerships_v2);
     });
-  }, []);
+  }, [account]);
 
   const onClaimClick = async (token_data_id: any) => {
     console.log("clicked");
@@ -55,12 +65,23 @@ export default function ClaimPage() {
       alignItems="center"
       m="8px"
     >
-      <Box>
-        <Image
-          src={token.current_token_data.token_uri}
-          className={"image-element-alive"}
-        />
-        <Button onClick={() => onClaimClick(token.token_data_id)}>CLAIM</Button>
+      <Box display="flex" justifyContent="center" alignItems="center">
+        <VStack>
+          <Image
+            mt="2"
+            src={token.current_token_data.token_uri}
+            className={"image-element-alive"}
+          />
+
+          {token.current_token_data.token_properties.Prize > 0 && (
+            <>
+              <Button my="4" onClick={() => onClaimClick(token.token_data_id)}>
+                CLAIM {token.current_token_data.token_properties.Prize / 1e8}{" "}
+                APT
+              </Button>
+            </>
+          )}
+        </VStack>
       </Box>
     </Box>
   ));
@@ -68,7 +89,7 @@ export default function ClaimPage() {
   return (
     <Box>
       <Heading>CLAIM</Heading>
-      <Flex flexWrap="wrap">{playerSquares}</Flex>
+      {collectionTokens && <Flex flexWrap="wrap">{playerSquares}</Flex>}
     </Box>
   );
 }

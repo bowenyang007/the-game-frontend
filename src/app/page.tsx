@@ -50,7 +50,7 @@ export default function LandingPage() {
   const [replay, setReplay] = useState(false);
   const [gameState, setGameState] = useState<GameState>();
   const router = useRouter();
-  
+
   const handleReplay = (to: boolean) => {
     setReplay(to);
   };
@@ -66,12 +66,6 @@ export default function LandingPage() {
       setShowJoining(true);
     }
   };
-
-  useEffect(() => {
-    if (showJoining) {
-    }
-  }, [showJoining]);
-
   // call joinGame where if users not wallet connected, open up wallet modal instead
   const handleJoinGame = async () => {
     if (account) {
@@ -133,20 +127,23 @@ export default function LandingPage() {
     }
   };
   console.log(startReactionTimeGame);
-  
+
   function render() {
     if (!gameState?.joinable && !gameState?.playable) {
-      localStorage.setItem(account?.address!, '0');
-        return <Button
-        onClick={handleInitializeGame}
-        isLoading={isInitGameLoading}
-        loadingText="Initializing..."
-      >
-        Please Initialize The Game
-      </Button>;
+      localStorage.setItem(account?.address!, "0");
+      return (
+        <Button
+          onClick={handleInitializeGame}
+          isLoading={isInitGameLoading}
+          loadingText="Initializing..."
+        >
+          Please Initialize The Game
+        </Button>
+      );
     }
     if (gameState.joinable) {
-      return <Flex alignItems={"center"}>
+      return (
+        <Flex alignItems={"center"}>
           {gameState?.latestPlayerState &&
           account?.address! in gameState?.latestPlayerState ? (
             <HStack spacing={2}>
@@ -163,28 +160,31 @@ export default function LandingPage() {
               Please Join The Game
             </Button>
           )}
-          <Button onClick={handleStartGame} position="fixed" bottom="0">
-            Start Game
-          </Button>
+          {gameState?.joinable && (
+            <Button onClick={handleStartGame} position="fixed" bottom="0">
+              Start Game
+            </Button>
+          )}
         </Flex>
-      }
+      );
     }
-    if (gameState?.playable) {
-      // TODO: add logic to start the game
-      return startReactionTimeGame || replay ? (
-        gameState?.latestPlayerState[account?.address!] ? (
-          <ReactionTimeGame handleReplay={handleReplay} />
-        ) : (
-          (() => {
-            router.push('/fun'); 
-            return null; 
-          })()
-        )
-      ) : null;
+  }
+  if (gameState?.playable) {
+    // TODO: add logic to start the game
+    return startReactionTimeGame || replay ? (
+      gameState?.latestPlayerState[account?.address!] ? (
+        <ReactionTimeGame handleReplay={handleReplay} />
+      ) : (
+        (() => {
+          router.push("/fun");
+          return null;
+        })()
+      )
+    ) : null;
   }
   return (
     <VStack width="100%" height="100vh" pt="20%">
-     {render()}
+      {render()}
     </VStack>
   );
 }
