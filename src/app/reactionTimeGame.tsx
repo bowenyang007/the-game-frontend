@@ -64,13 +64,13 @@ export default function ReactionTimeGame({ handleReplay }: props) {
     <Box textAlign="center" w="100%" h="50%">
       <Heading>!Attention Please!</Heading>
       {isRedBoxVisible ? (
-        <Flex height="100%">
+        <Flex height="500px">
           <Box bg="#CE3626" onClick={handleClick} width={"100%"}>
             <Heading>Wait For Green!</Heading>
           </Box>
         </Flex>
       ) : isGreenBoxVisible ? (
-        <Flex height="100%">
+        <Flex height="500px">
           <Box bg="#4BDB6A" onClick={handleClick} width={"100%"}>
             <Text>Click Me Now!</Text>
           </Box>

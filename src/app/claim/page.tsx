@@ -24,7 +24,7 @@ export default function ClaimPage() {
   const getCollectionTokens = async () => {
     if (!account) return;
     const provider = new IndexerClient(
-      "https://indexer-devnet.staging.gcp.aptosdev.com/v1/graphql"
+      "https://indexer-devnet.staging.gcp.aptosdev.com/v1/graphql",
     );
     const collectionTokens = await provider.getTokenOwnedFromCollectionAddress(
       account?.address,
