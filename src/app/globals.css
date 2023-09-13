@@ -79,3 +79,28 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+.image-wrapper {
+  width: 100px;
+  margin: auto;
+}
+
+.image-element {
+  position: absolute;
+  width: 100px;
+  z-index: 1;
+}
+
+.image-element-alive {
+  margin: auto;
+  width: 100px;
+}
+
+.x-icon {
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 2;
+  position: relative;
+}

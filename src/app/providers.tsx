@@ -41,12 +41,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
           console.log("error", error);
         }}
       >
-          <Flex direction="column" align="flex-end" pr={5} pt={5}>
-            <WalletConnector />
-          </Flex>
-          <Flex direction="column" align="center">
-            {children}
-          </Flex>
+        <Flex direction="column" align="flex-end" pr={5} pt={5}>
+          <WalletConnector />
+        </Flex>
+        <Flex direction="column" align="center">
+          {children}
+        </Flex>
       </AptosWalletAdapterProvider>
     </ChakraProvider>
   );
