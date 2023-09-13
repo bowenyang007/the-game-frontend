@@ -50,6 +50,7 @@ export default function LandingPage() {
   const [replay, setReplay] = useState(false);
   const [gameState, setGameState] = useState<GameState>();
   const router = useRouter();
+  let localRound = 0;
 
   const handleReplay = (to: boolean) => {
     setReplay(to);
@@ -66,6 +67,12 @@ export default function LandingPage() {
       setShowJoining(true);
     }
   };
+
+  useEffect(() => {
+    if (showJoining) {
+    }
+  }, [showJoining]);
+
   // call joinGame where if users not wallet connected, open up wallet modal instead
   const handleJoinGame = async () => {
     if (account) {
@@ -91,14 +98,13 @@ export default function LandingPage() {
         console.log("game state", fetchedGameState);
 
         const roundFromServer = fetchedGameState?.round;
-        const local = localStorage.getItem(account?.address!);
-        console.log("local " + local);
+        console.log("local " + localRound);
         console.log("server " + roundFromServer);
 
         if (roundFromServer && roundFromServer !== 0) {
-          if (local && roundFromServer !== Number(local)) {
+          if (roundFromServer !== localRound) {
             handleReplay(true);
-            localStorage.setItem(account?.address!, roundFromServer.toString());
+            localRound = roundFromServer;
           } else {
             handleReplay(false);
           }
@@ -130,7 +136,7 @@ export default function LandingPage() {
 
   function render() {
     if (!gameState?.joinable && !gameState?.playable) {
-      localStorage.setItem(account?.address!, "0");
+      localRound = 0;
       return (
         <Button
           onClick={handleInitializeGame}
@@ -160,11 +166,9 @@ export default function LandingPage() {
               Please Join The Game
             </Button>
           )}
-          {gameState?.joinable && (
-            <Button onClick={handleStartGame} position="fixed" bottom="0">
-              Start Game
-            </Button>
-          )}
+          <Button onClick={handleStartGame} position="fixed" bottom="0">
+            Start Game
+          </Button>
         </Flex>
       );
     }
