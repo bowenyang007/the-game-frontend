@@ -10,8 +10,6 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
-// import DeadPerson from "./components/DeadPerson";
-import { CloseIcon } from "@chakra-ui/icons";
 import { IndexerClient } from "aptos";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
 
@@ -23,13 +21,11 @@ export default function ClaimPage() {
 
   const getCollectionTokens = async () => {
     if (!account) return;
-    const provider = new IndexerClient(
-      "https://indexer-devnet.staging.gcp.aptosdev.com/v1/graphql",
-    );
+    const provider = new IndexerClient(process.env.NEXT_PUBLIC_INDEXER_URL!);
     const collectionTokens = await provider.getTokenOwnedFromCollectionAddress(
       account?.address,
       collectionAddress!,
-      { tokenStandard: "v2" }
+      { tokenStandard: "v2" },
     );
 
     return collectionTokens;

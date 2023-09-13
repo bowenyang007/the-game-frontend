@@ -6,7 +6,6 @@ import {
 } from "aptos";
 import { useEffect, useState } from "react";
 import { NetworkName, useWallet } from "@aptos-labs/wallet-adapter-react";
-import { DEVNET_FULLNODE } from "../util";
 
 export type TransactionResponse =
   | TransactionResponseOnSubmission
@@ -45,7 +44,7 @@ const useSubmitTransaction = () => {
     const signAndSubmitTransactionCall = async (
       transactionPayload: Types.TransactionPayload,
     ): Promise<TransactionResponse> => {
-      const aptosClient = new AptosClient(DEVNET_FULLNODE);
+      const aptosClient = new AptosClient(process.env.NEXT_PUBLIC_FULLNODE_URL!);
       const responseOnError: TransactionResponseOnError = {
         transactionSubmitted: false,
         message: "Unknown Error",

@@ -17,7 +17,9 @@ export default function FunPage() {
 
   const getState = async () => {
     // call server to know game state
-    const response = await fetch("http://localhost:8000/view_state");
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_SERVER_URL}/view_state`,
+    );
     const newState = await response.json();
     return newState;
   };
@@ -126,14 +128,16 @@ export default function FunPage() {
   return (
     <>
       {/* game is going */}
-      {gameState && gameState.playable && gameState?.latestPlayerState && (
-        <Box>
-          <Text>{count}</Text>
-          <Heading>DASHBOARD</Heading>
-          <Text fontSize="5xl">💰 {gameState?.pool / 1e8}</Text>
-          <Flex flexWrap="wrap">{playerSquares}</Flex>
-        </Box>
-      )}
+      {gameState &&
+        (gameState.joinable || gameState.playable) &&
+        gameState?.latestPlayerState && (
+          <Box>
+            <Text>{count}</Text>
+            <Heading>DASHBOARD</Heading>
+            <Text fontSize="5xl">💰 {gameState?.pool / 1e8}</Text>
+            <Flex flexWrap="wrap">{playerSquares}</Flex>
+          </Box>
+        )}
       {/* end state */}
       {gameState &&
         !gameState.joinable &&

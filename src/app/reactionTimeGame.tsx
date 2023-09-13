@@ -19,7 +19,6 @@ export default function ReactionTimeGame({ handleReplay }: props) {
 
   const handleClick = () => {
     if (isRedBoxVisible) {
-      setReactionTime(-1);
       setHasFailed(true);
     } else if (isGreenBoxVisible) {
       // Player clicked on the green box, update their score
@@ -80,7 +79,10 @@ export default function ReactionTimeGame({ handleReplay }: props) {
           {hasFailed ? (
             <Heading color="red">You clicked too early. You failed!</Heading>
           ) : (
-            <Heading>Your reaction time: {reactionTime} milliseconds</Heading>
+            <>
+              <Heading>Your reaction time: {reactionTime} milliseconds</Heading>
+              <Heading>Waiting for next round...</Heading>
+            </>
           )}
         </div>
       )}

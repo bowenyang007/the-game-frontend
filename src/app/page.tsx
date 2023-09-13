@@ -56,22 +56,22 @@ export default function LandingPage() {
     setReplay(to);
   };
   // once init game's called, change gamestatus to be JOINING
-  const handleInitializeGame = async () => {
-    try {
-      setIsInitGameLoading(true);
-      fetchAPI("init_game");
-    } catch (error) {
-      console.error("Error initializing the game:", error);
-    } finally {
-      setIsInitGameLoading(false);
-      setShowJoining(true);
-    }
-  };
+  // const handleInitializeGame = async () => {
+  //   try {
+  //     setIsInitGameLoading(true);
+  //     fetchAPI("init_game");
+  //   } catch (error) {
+  //     console.error("Error initializing the game:", error);
+  //   } finally {
+  //     setIsInitGameLoading(false);
+  //     setShowJoining(true);
+  //   }
+  // };
 
-  useEffect(() => {
-    if (showJoining) {
-    }
-  }, [showJoining]);
+  // useEffect(() => {
+  //   if (showJoining) {
+  //   }
+  // }, [showJoining]);
 
   // call joinGame where if users not wallet connected, open up wallet modal instead
   const handleJoinGame = async () => {
@@ -119,35 +119,36 @@ export default function LandingPage() {
     return () => clearInterval(interval);
   }, []);
 
-  const closeWalletModal = () => {
-    setIsWalletModalOpen(false);
-  };
+  // const closeWalletModal = () => {
+  //   setIsWalletModalOpen(false);
+  // };
 
-  const handleStartGame = async () => {
-    try {
-      await fetchAPI("start_game");
-    } catch (e) {
-      console.log("Fail to start the game...");
-    } finally {
-      setStartReactionTimeGame(true);
-    }
-  };
-  console.log(startReactionTimeGame);
+  // const handleStartGame = async () => {
+  //   try {
+  //     await fetchAPI("start_game");
+  //   } catch (e) {
+  //     console.log("Fail to start the game...");
+  //   } finally {
+  //     setStartReactionTimeGame(true);
+  //   }
+  // };
+  // console.log(startReactionTimeGame);
 
   function render() {
     if (!gameState?.joinable && !gameState?.playable) {
-      localRound = 0;
-      return (
-        <Button
-          onClick={handleInitializeGame}
-          isLoading={isInitGameLoading}
-          loadingText="Initializing..."
-        >
-          Please Initialize The Game
-        </Button>
-      );
+      return <Heading>Please wait for The Game to get started...</Heading>
+    //   localRound = 0;
+    //   return (
+    //     <Button
+    //       onClick={handleInitializeGame}
+    //       isLoading={isInitGameLoading}
+    //       loadingText="Initializing..."
+    //     >
+    //       Please Initialize The Game
+    //     </Button>
+    //   );
     }
-    if (gameState.joinable) {
+    if (gameState?.joinable) {
       return (
         <Flex alignItems={"center"}>
           {gameState?.latestPlayerState &&
@@ -166,16 +167,16 @@ export default function LandingPage() {
               Please Join The Game
             </Button>
           )}
-          <Button onClick={handleStartGame} position="fixed" bottom="0">
+          {/* <Button onClick={handleStartGame} position="fixed" bottom="0">
             Start Game
-          </Button>
+          </Button> */}
         </Flex>
       );
     }
   }
   if (gameState?.playable) {
     // TODO: add logic to start the game
-    return startReactionTimeGame || replay ? (
+    return startReactionTimeGame || replay || gameState.playable ? (
       gameState?.latestPlayerState[account?.address!] ? (
         <ReactionTimeGame handleReplay={handleReplay} />
       ) : (
