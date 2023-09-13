@@ -2,7 +2,7 @@
 
 import { Box, Flex, Heading, Text, Image } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
-import { GameState, PlayerState, PlayerStatesMap } from "../providers";
+import { GameState } from "../providers";
 // import DeadPerson from "./components/DeadPerson";
 import { CloseIcon } from "@chakra-ui/icons";
 import { dummyPlayerStates } from "./const";
@@ -12,7 +12,7 @@ export default function FunPage() {
 
   // const { gameState } = useContext(StateContext);
 
-  const [playerStates, setPlayerStates] = useState<PlayerStatesMap>({});
+  //const [playerStates, setPlayerStates] = useState<PlayerStatesMap>({});
   const [gameState, setGameState] = useState<GameState>();
 
   const getState = async () => {
@@ -26,7 +26,7 @@ export default function FunPage() {
     const intervalId = setInterval(async () => {
       const newState: GameState = await getState();
       console.log("newState", newState);
-      const updatedPlayerStates = { ...playerStates };
+      //const updatedPlayerStates = { ...playerStates };
 
       // Object.keys(newState).forEach((playerId) => {
       //   console.log("playerId", playerId);
